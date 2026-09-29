@@ -1,0 +1,4 @@
+# Local tool folders/files that shouldn't go to GitHub
+.freebuff/
+.DS_Store
+Thumbs.db

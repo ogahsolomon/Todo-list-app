@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My To-Do List</title>
+
+  <!-- ============ STYLES (how the page looks) ============ -->
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    /* The white card that holds the whole app */
+    .app {
+      background: white;
+      width: 100%;
+      max-width: 540px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 32px;
+      height: fit-content;
+    }
+
+    h1 {
+      margin: 0 0 20px 0;
+      font-size: 28px;
+      color: #333;
+      text-align: center;
+    }
+
+    /* Row for typing + Add button */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    #taskInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #taskInput:focus { border-color: #764ba2; }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    button:active { transform: scale(0.96); }
+
+    #addBtn {
+      background: #764ba2;
+      color: white;
+      padding: 0 20px;
+      font-weight: 600;
+    }
+
+    #addBtn:hover { background: #5d3a86; }
+
+    /* One todo item */
+    .todo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: #fff;
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 16px;
+      color: #333;
+      word-break: break-word;
+    }
+
+    /* Crossed-out look for finished tasks */
+    .todo.done .todo-text {
+      text-decoration: line-through;
+      color: #aaa;
+    }
+
+    .todo.done { background: #f7f7f7; }
+
+    /* Small square buttons on each item */
+    .icon-btn {
+      background: #f0f0f0;
+      color: #555;
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .icon-btn:hover { background: #e0e0e0; }
+
+    .icon-btn.check { background: #e8f5e9; color: #2e7d32; }
+    .icon-btn.check:hover { background: #c8e6c9; }
+
+    .icon-btn.up:hover,
+    .icon-btn.down:hover,
+    .icon-btn.restore:hover { background: #e3f2fd; }
+
+    .icon-btn.archive:hover { background: #ffe0b2; }
+    .icon-btn.delete:hover { background: #ffebee; color: #c62828; }
+
+    /* Section headings (Active / Archived) */
+    .section-title {
+      font-size: 18px;
+      color: #555;
+      margin: 24px 0 12px 0;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 8px;
+    }
+
+    .empty-msg {
+      color: #999;
+      text-align: center;
+      padding: 12px;
+      font-style: italic;
+    }
+
+    .footer-count {
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <h1>📝 My To-Do List</h1>
+
+    <!-- Row for typing a new task -->
+    <div class="input-row">
+      <input id="taskInput" type="text" placeholder="Type a new task..." />
+      <button id="addBtn">Add</button>
+    </div>
+
+    <div>
+      <h2 class="section-title">Active</h2>
+      <div id="activeList"></div>
+    </div>
+
+    <div>
+      <h2 class="section-title">Archived</h2>
+      <div id="archiveList"></div>
+    </div>
+
+    <p class="footer-count" id="footerCount"></p>
+  </div>
+
+  <script>
+    /* =====================================================
+       STATE = the data of our app (the list of todos).
+       Each todo is an object like:
+         { id: 1, text: "Buy milk", done: false, archived: false }
+       ===================================================== */
+    let todos = [];
+    let nextId = 1;
+
+    /* Load todos saved from last time. localStorage remembers
+       data even after closing the browser. */
+    const saved = localStorage.getItem("todos");
+    if (saved) {
+      todos = JSON.parse(saved);
+      // Make sure nextId is always bigger than any existing id
+      nextId = todos.reduce((max, t) => Math.max(max, t.id), 0) + 1;
+    }
+
+    /* Save todos whenever anything changes */
+    function save() {
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+
+    /* ===== Adding a task ===== */
+    function addTodo() {
+      const input = document.getElementById("taskInput");
+      const text = input.value.trim(); // .trim() removes extra spaces
+      if (!text) return; // ignore empty input
+
+      todos.push({ id: nextId++, text: text, done: false, archived: false });
+      input.value = ""; // clear the box
+      input.focus();    // keep typing more tasks
+      render();
+    }
+
+    /* ===== Check off (mark done / not done) ===== */
+    function toggleDone(id) {
+      const todo = todos.find(function (t) { return t.id === id; });
+      if (todo) todo.done = !todo.done;
+      render();
+    }
+
+    /* ===== Move up (-1) or down (+1) in the active list ===== */
+    function move(id, direction) {
+      const actives = todos.filter(function (t) { return !t.archived; });
+      const index = actives.findIndex(function (t) { return t.id === id; });
+      const newIndex = index + direction;
+
+      // Don't move past the top or the bottom
+      if (index === -1 || newIndex < 0 || newIndex >= actives.length) return;
+
+      // Swap with the neighbour in the master `todos` array
+      const a = todos.indexOf(actives[index]);
+      const b = todos.indexOf(actives[newIndex]);
+      const tmp = todos[a];
+      todos[a] = todos[b];
+      todos[b] = tmp;
+      render();
+    }
+
+    /* ===== Archive / Restore (archive just hides it from Active) ===== */
+    function toggleArchive(id) {
+      const todo = todos.find(function (t) { return t.id === id; });
+      if (todo) todo.archived = !todo.archived;
+      render();
+    }
+
+    /* ===== Delete permanently (only inside the archive) ===== */
+    function deleteTodo(id) {
+      todos = todos.filter(function (t) { return t.id !== id; });
+      render();
+    }
+
+    /* =====================================================
+       RENDERING = drawing the list on screen.
+       We rebuild the HTML from the `todos` data each time
+       something changes, so the screen always matches the data.
+       ===================================================== */
+    function render() {
+      save(); // keep storage in sync
+
+      // Split into active and archived
+      const actives = todos.filter(function (t) { return !t.archived; });
+      const archived = todos.filter(function (t) { return t.archived; });
+
+      const activeList = document.getElementById("activeList");
+      const archiveList = document.getElementById("archiveList");
+
+      /* Helper: create the text span for a todo */
+      function makeText(todo) {
+        const span = document.createElement("span");
+        span.className = "todo-text";
+        span.textContent = todo.text; // safe way to show user text
+        return span;
+      }
+
+      /* Helper: create one small button */
+      function makeBtn(className, symbol, title, onClick) {
+        const btn = document.createElement("button");
+        btn.className = "icon-btn " + className;
+        btn.textContent = symbol;
+        btn.title = title;
+        btn.onclick = onClick;
+        return btn;
+      }
+
+      // ----- Build the ACTIVE list -----
+      activeList.innerHTML = "";
+      if (actives.length === 0) {
+        activeList.innerHTML = '<p class="empty-msg">No tasks yet — add one above!</p>';
+      } else {
+        actives.forEach(function (todo, i) {
+          const div = document.createElement("div");
+          div.className = "todo" + (todo.done ? " done" : "");
+
+          div.appendChild(makeText(todo));
+
+          // ✓ button: check off / uncheck
+          div.appendChild(makeBtn("check", todo.done ? "↩" : "✓",
+            todo.done ? "Mark as not done" : "Mark as done",
+            function () { toggleDone(todo.id); }));
+
+          // ↑ arrow: move up (hidden on the first item)
+          if (i > 0) {
+            div.appendChild(makeBtn("up", "↑", "Move up",
+              function () { move(todo.id, -1); }));
+          }
+
+          // ↓ arrow: move down (hidden on the last item)
+          if (i < actives.length - 1) {
+            div.appendChild(makeBtn("down", "↓", "Move down",
+              function () { move(todo.id, 1); }));
+          }
+
+          // 📦 button: archive
+          div.appendChild(makeBtn("archive", "📦", "Archive",
+            function () { toggleArchive(todo.id); }));
+
+          activeList.appendChild(div);
+        });
+      }
+
+      // ----- Build the ARCHIVED list -----
+      archiveList.innerHTML = "";
+      if (archived.length === 0) {
+        archiveList.innerHTML = '<p class="empty-msg">Nothing archived yet. Archive a task with 📦.</p>';
+      } else {
+        archived.forEach(function (todo) {
+          const div = document.createElement("div");
+          div.className = "todo" + (todo.done ? " done" : "");
+
+          div.appendChild(makeText(todo));
+
+          // ↩ button: restore back to Active
+          div.appendChild(makeBtn("restore", "↩", "Restore to active list",
+            function () { toggleArchive(todo.id); }));
+
+          // 🗑 button: delete permanently (with confirmation)
+          div.appendChild(makeBtn("delete", "🗑", "Delete permanently",
+            function () {
+              if (confirm('Delete "' + todo.text + '" permanently?')) {
+                deleteTodo(todo.id);
+              }
+            }));
+
+          archiveList.appendChild(div);
+        });
+      }
+
+      // ----- Footer counter -----
+      const left = actives.filter(function (t) { return !t.done; }).length;
+      document.getElementById("footerCount").textContent =
+        left + " task" + (left === 1 ? "" : "s") + " left · " +
+        archived.length + " archived";
+    }
+
+    /* ===== Wire up the Add button and the Enter key ===== */
+    document.getElementById("addBtn").onclick = addTodo;
+    document.getElementById("taskInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") addTodo();
+    });
+
+    /* ===== Draw the list the first time ===== */
+    render();
+  </script>
+</body>
+</html>
