@@ -1,29 +1,34 @@
-# My To-Do List 📝
+# My Todo List 📝
 
-A simple to-do app built with plain HTML, CSS, and JavaScript — all in one file.
-Perfect for beginners: no installs, no build tools, just open and use.
+A modern, minimal to-do app in a single HTML file. No frameworks, no build step.
 
-## How to use it
+## Features
 
-- **Add a task** — type in the box and press **Add** (or the Enter key).
-- **Check off a task** — click the **✓** button. Click again to uncheck.
-- **Move a task** — use the **↑ / ↓** buttons to reorder items.
-- **Archive a task** — click **📦**. It moves to the "Archived" section (hidden from the active list, but not deleted).
-- **Restore** — click **↩** on an archived task to bring it back.
-- **Delete forever** — click **🗑** on an archived task (asks for confirmation first).
+- **Pill composer** — type and click the purple **+** (works great on touch devices, no Enter key needed)
+- **Circle checkboxes** — checking a task strikes it through and auto-archives it after 800 ms
+- **Undo toast** — archive/delete actions show a 5-second undo bar at the bottom
+- **Notes** — each task can have a note (📝 button, or click a note preview to expand it)
+- **Timestamps** — every task shows a faint "Created …" / "Edited …" subscript (hover for exact dates)
+- **Quick edit** — double-click a title to rename it (or use the ✏️ button)
+- **Drag to reorder** — grab any active task and drop it where you want
+- **Filters** — All / Active / Done
+- **Archive** — collapsible section (closed by default); restore with ↩, delete permanently with 🗑
+- **Persistence** — everything is saved in your browser's localStorage
 
-Your tasks are saved in your browser automatically, so they're still there
-the next time you open the page (as long as you use the same browser).
+## Design
 
-## How the code is organized (index.html)
+- Inter font for text, **Fraunces** serif for the large display heading
+- Background `#f6f7fb`, 480px white card with 24px rounded corners
+- Purple accent `#7c5cff`, soft shadows, subtle animations
 
-1. **HTML** — the page skeleton: an input box, an "Active" list, and an "Archived" list.
-2. **CSS** (inside `<style>`) — all the colors, spacing, and layout.
-3. **JavaScript** (inside `<script>`) — the app logic:
-   - `todos` — the list of task data (each task has an id, text, done, archived)
-   - `render()` — redraws the screen from the data after every change
-   - helper functions: `addTodo`, `toggleDone`, `move`, `toggleArchive`, `deleteTodo`
+## Try it
 
-The main idea to learn from: the **data** (`todos`) is the source of truth,
-and the screen is just a picture of that data. Every button changes the data,
-then calls `render()` to update the picture.
+Open `index.html` in any browser. That's it.
+
+## Code tour (index.html)
+
+1. **HTML** — the card: composer, filters, active list, collapsible archive, undo toast
+2. **CSS** — design tokens in `:root`, then one block per component
+3. **JavaScript** — a single `todos` array is the source of truth
+   (`{ id, title, note, done, archived, createdAt }`). Every button mutates the
+   data, saves to localStorage, and calls `render()` to rebuild the lists.

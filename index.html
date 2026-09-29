@@ -1,365 +1,703 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My To-Do List</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Todo List</title>
 
-  <!-- ============ STYLES (how the page looks) ============ -->
-  <style>
-    * { box-sizing: border-box; }
+<!-- Fonts from Google Fonts: Fraunces (display heading) + Inter (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    body {
-      margin: 0;
-      font-family: "Segoe UI", system-ui, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 40px 16px;
-    }
+<!-- ============================================================
+     STYLES — modern minimal
+     ============================================================ -->
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --purple: #7c5cff;
+    --purple-soft: rgba(124, 92, 255, 0.12);
+    --text: #1c1d22;
+    --muted: #9aa0ab;
+    --line: #ececf1;
+  }
 
-    /* The white card that holds the whole app */
-    .app {
-      background: white;
-      width: 100%;
-      max-width: 540px;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 32px;
-      height: fit-content;
-    }
+  * { box-sizing: border-box; }
 
-    h1 {
-      margin: 0 0 20px 0;
-      font-size: 28px;
-      color: #333;
-      text-align: center;
-    }
+  html, body { margin: 0; }
 
-    /* Row for typing + Add button */
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 16px;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
 
-    #taskInput {
-      flex: 1;
-      padding: 12px 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+  /* White card, 480px, big rounded corners */
+  .app {
+    width: 100%;
+    max-width: 480px;
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 1px 2px rgba(16,17,26,.04), 0 12px 40px rgba(16,17,26,.06);
+    height: fit-content;
+  }
 
-    #taskInput:focus { border-color: #764ba2; }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 2px 0 18px;
+  }
 
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      transition: transform 0.1s, background 0.2s;
-    }
+  /* ---------- Pill input with + button inside ---------- */
+  .composer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 5px 5px 18px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .composer:focus-within {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px var(--purple-soft);
+  }
+  #taskInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    font: inherit;
+    font-size: 15px;
+    background: transparent;
+    color: var(--text);
+    min-width: 0;
+  }
+  #taskInput::placeholder { color: var(--muted); }
+  #addBtn {
+    width: 36px; height: 36px;
+    border: none; border-radius: 50%;
+    background: var(--purple); color: #fff;
+    font-size: 20px; line-height: 1;
+    cursor: pointer; flex-shrink: 0;
+    display: grid; place-items: center;
+    transition: transform .12s, background .15s;
+  }
+  #addBtn:hover { background: #6a4bf0; }
+  #addBtn:active { transform: scale(.92); }
 
-    button:active { transform: scale(0.96); }
+  /* ---------- Sections & filters ---------- */
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 26px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .count { font-weight: 500; }
 
-    #addBtn {
-      background: #764ba2;
-      color: white;
-      padding: 0 20px;
-      font-weight: 600;
-    }
+  .filters { display: flex; gap: 6px; margin: 0 0 10px; }
+  .filter-btn {
+    border: none; background: transparent;
+    font: inherit; font-size: 13px; font-weight: 500;
+    color: var(--muted);
+    padding: 5px 12px; border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .filter-btn:hover { background: #f1f1f6; }
+  .filter-btn.active { background: var(--purple-soft); color: var(--purple); }
 
-    #addBtn:hover { background: #5d3a86; }
+  /* ---------- Task row ---------- */
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 11px 10px;
+    border-radius: 14px;
+    cursor: grab;
+    position: relative;
+    transition: background .15s;
+  }
+  .task:hover { background: #fafafc; }
+  .task.dragging { opacity: .35; cursor: grabbing; }
+  .task.drop-target { box-shadow: 0 -2px 0 var(--purple); }
 
-    /* One todo item */
-    .todo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      margin-bottom: 8px;
-      background: #fff;
-    }
+  .checkbox {
+    width: 21px; height: 21px;
+    border: 1.8px solid #d4d7de;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer; flex-shrink: 0;
+    margin-top: 1px;
+    display: grid; place-items: center;
+    color: transparent;
+    font-size: 12px;
+    padding: 0;
+    transition: border-color .15s, background .15s, color .15s, transform .12s;
+  }
+  .checkbox:hover { border-color: var(--purple); }
+  .task.done .checkbox {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: #fff;
+  }
+  .checkbox:active { transform: scale(.88); }
 
-    .todo-text {
-      flex: 1;
-      font-size: 16px;
-      color: #333;
-      word-break: break-word;
-    }
+  .body { flex: 1; min-width: 0; }
 
-    /* Crossed-out look for finished tasks */
-    .todo.done .todo-text {
-      text-decoration: line-through;
-      color: #aaa;
-    }
+  .title {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    word-break: break-word;
+    cursor: text;
+  }
+  .task.done .title {
+    text-decoration: line-through;
+    color: var(--muted);
+    font-weight: 400;
+  }
 
-    .todo.done { background: #f7f7f7; }
+  /* Faint subscript timestamps (created / edited) */
+  .meta {
+    font-size: 11px;
+    color: var(--muted);
+    opacity: .75;
+    margin-top: 3px;
+    line-height: 1.3;
+  }
 
-    /* Small square buttons on each item */
-    .icon-btn {
-      background: #f0f0f0;
-      color: #555;
-      width: 32px;
-      height: 32px;
-      min-width: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
+  /* Note: preview when collapsed, textarea when expanded */
+  .note-preview {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.45;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  .note-editor {
+    display: none;
+    width: 100%;
+    font: inherit;
+    font-size: 13px;
+    color: var(--text);
+    border: 1.5px solid var(--purple);
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    outline: none;
+    resize: vertical;
+    min-height: 56px;
+    background: #fff;
+  }
+  .task.note-open .note-preview { display: none; }
+  .task.note-open .note-editor { display: block; }
 
-    .icon-btn:hover { background: #e0e0e0; }
+  /* Hover actions, right-aligned; appear on row hover */
+  .actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+    flex-shrink: 0;
+  }
+  .task:hover .actions, .task:focus-within .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .act {
+    width: 28px; height: 28px;
+    border: none; border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: background .15s, color .15s;
+  }
+  .act:hover { background: #f0f0f5; color: var(--text); }
+  .act.archive:hover { background: var(--purple-soft); color: var(--purple); }
+  .act.delete:hover { background: #ffecec; color: #e5484d; }
 
-    .icon-btn.check { background: #e8f5e9; color: #2e7d32; }
-    .icon-btn.check:hover { background: #c8e6c9; }
+  /* ---------- Archive section (collapsible) ---------- */
+  #archiveToggle {
+    width: 100%;
+    border: none; background: transparent;
+    font: inherit; font-size: 12px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    padding: 0;
+    margin: 26px 0 10px;
+  }
+  #archiveToggle:hover { color: var(--text); }
+  #archiveToggle .chev { transition: transform .2s; font-size: 10px; }
+  #archiveToggle.open .chev { transform: rotate(90deg); }
+  #archiveWrap { display: none; }
+  #archiveWrap.open { display: block; }
+  #archiveWrap .task { opacity: .75; }
 
-    .icon-btn.up:hover,
-    .icon-btn.down:hover,
-    .icon-btn.restore:hover { background: #e3f2fd; }
+  .empty {
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    padding: 22px 0;
+    font-weight: 400;
+  }
 
-    .icon-btn.archive:hover { background: #ffe0b2; }
-    .icon-btn.delete:hover { background: #ffebee; color: #c62828; }
+  /* ---------- Undo toast ---------- */
+  #toast {
+    position: fixed;
+    left: 50%; bottom: 28px;
+    transform: translateX(-50%) translateY(20px);
+    background: #1c1d22;
+    color: #fff;
+    font-size: 14px;
+    padding: 11px 10px 11px 18px;
+    border-radius: 14px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 10;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  #toastUndo {
+    border: none; background: transparent;
+    color: #b3a1ff; font: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer; padding: 4px 6px; border-radius: 8px;
+  }
+  #toastUndo:hover { background: rgba(255,255,255,.1); }
+  #toastClose {
+    border: none; background: transparent;
+    color: #9aa0ab; font-size: 14px; cursor: pointer;
+    padding: 4px 6px; border-radius: 8px;
+  }
+  #toastClose:hover { background: rgba(255,255,255,.1); color: #fff; }
 
-    /* Section headings (Active / Archived) */
-    .section-title {
-      font-size: 18px;
-      color: #555;
-      margin: 24px 0 12px 0;
-      border-bottom: 2px solid #f0f0f0;
-      padding-bottom: 8px;
-    }
-
-    .empty-msg {
-      color: #999;
-      text-align: center;
-      padding: 12px;
-      font-style: italic;
-    }
-
-    .footer-count {
-      text-align: center;
-      color: #888;
-      font-size: 14px;
-      margin-top: 16px;
-    }
-  </style>
+  /* Entrance animation for new task rows */
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .task { animation: pop-in .18s ease-out; }
+</style>
 </head>
 <body>
 
-  <div class="app">
-    <h1>📝 My To-Do List</h1>
+<main class="app">
+  <h1>My Todo List</h1>
 
-    <!-- Row for typing a new task -->
-    <div class="input-row">
-      <input id="taskInput" type="text" placeholder="Type a new task..." />
-      <button id="addBtn">Add</button>
-    </div>
-
-    <div>
-      <h2 class="section-title">Active</h2>
-      <div id="activeList"></div>
-    </div>
-
-    <div>
-      <h2 class="section-title">Archived</h2>
-      <div id="archiveList"></div>
-    </div>
-
-    <p class="footer-count" id="footerCount"></p>
+  <!-- Pill composer: input + round purple + button inside -->
+  <div class="composer">
+    <input id="taskInput" type="text" placeholder="Add a task…" autocomplete="off" />
+    <button id="addBtn" title="Add task">+</button>
   </div>
 
-  <script>
-    /* =====================================================
-       STATE = the data of our app (the list of todos).
-       Each todo is an object like:
-         { id: 1, text: "Buy milk", done: false, archived: false }
-       ===================================================== */
-    let todos = [];
-    let nextId = 1;
+  <!-- Active section with filters -->
+  <h2 class="section-title">Active <span class="count" id="activeCount"></span></h2>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="active">Active</button>
+    <button class="filter-btn" data-filter="done">Done</button>
+  </div>
+  <div id="activeList"></div>
 
-    /* Load todos saved from last time. localStorage remembers
-       data even after closing the browser. */
-    const saved = localStorage.getItem("todos");
-    if (saved) {
-      todos = JSON.parse(saved);
-      // Make sure nextId is always bigger than any existing id
-      nextId = todos.reduce((max, t) => Math.max(max, t.id), 0) + 1;
+  <!-- Archived section, collapsed by default -->
+  <button id="archiveToggle"><span class="chev">▶</span> Archived <span class="count" id="archiveCount"></span></button>
+  <div id="archiveWrap">
+    <div id="archiveList"></div>
+  </div>
+</main>
+
+<!-- Undo toast -->
+<div id="toast">
+  <span id="toastMsg"></span>
+  <button id="toastUndo">Undo</button>
+  <button id="toastClose" title="Dismiss">✕</button>
+</div>
+
+<script>
+/* ============================================================
+   STATE — { id, title, note, done, archived, createdAt, editedAt }
+   ============================================================ */
+let todos = [];
+let nextId = 1;
+let filter = "all";          // all | active | done
+let archiveOpen = false;
+
+const KEY = "todos.v2";
+
+/* Load saved tasks */
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY));
+  if (Array.isArray(saved)) {
+    todos = saved;
+    nextId = todos.reduce((m, t) => Math.max(m, t.id), 0) + 1;
+  }
+} catch (e) { /* corrupted storage — start fresh */ }
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(todos));
+}
+
+/* ============================================================
+   MUTATIONS
+   ============================================================ */
+function addTodo(title) {
+  title = title.trim();
+  if (!title) return;
+  todos.unshift({ id: nextId++, title, note: "", done: false, archived: false, createdAt: Date.now(), editedAt: null });
+  render();
+}
+
+function toggleDone(id) {
+  const t = byId(id);
+  if (!t) return;
+  t.done = !t.done;
+  if (t.done) {
+    /* Auto-archive 800ms after checking, with undo */
+    save(); render();
+    scheduleAutoArchive(id, 800);
+  } else {
+    cancelAutoArchive(id);
+    save(); render();
+  }
+}
+
+function setTitle(id, title) {
+  const t = byId(id);
+  title = title.trim();
+  if (t && title && t.title !== title) {
+    t.title = title;
+    t.editedAt = Date.now();
+  }
+  save(); render();
+}
+
+function setNote(id, note) {
+  const t = byId(id);
+  if (t && t.note !== note) {
+    t.note = note;
+    t.editedAt = Date.now();
+  }
+  save();
+}
+
+function archiveTodo(id) {
+  const t = byId(id);
+  if (!t) return;
+  t.archived = true;
+  save(); render();
+  showToast(`"${truncate(t.title, 24)}" archived`, function () {
+    t.archived = false; save(); render();
+  });
+}
+
+function deleteTodo(id) {
+  const t = byId(id);
+  if (!t) return;
+  const backup = t, idx = todos.indexOf(t);
+  todos.splice(idx, 1);
+  save(); render();
+  showToast(`"${truncate(t.title, 24)}" deleted`, function () {
+    todos.splice(idx, 0, backup); save(); render();
+  });
+}
+
+/* Auto-archive timers (cancelled by uncheck or undo) */
+const autoArchiveTimers = new Map();
+function scheduleAutoArchive(id, ms) {
+  autoArchiveTimers.set(id, setTimeout(function () {
+    autoArchiveTimers.delete(id);
+    archiveTodo(id);
+  }, ms));
+}
+function cancelAutoArchive(id) {
+  const timer = autoArchiveTimers.get(id);
+  if (timer) { clearTimeout(timer); autoArchiveTimers.delete(id); }
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function byId(id) { return todos.find(function (t) { return t.id === id; }); }
+function truncate(s, n) { return s.length > n ? s.slice(0, n) + "…" : s; }
+
+/* Friendly time text for the faint timestamps: "just now", "5m ago", "Mar 3" */
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 10) return "just now";
+  if (s < 60) return s + "s ago";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + "m ago";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + "h ago";
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + "d ago";
+  return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/* Undo toast */
+const toastEl = document.getElementById("toast");
+let toastTimer = null;
+function showToast(msg, undoFn) {
+  document.getElementById("toastMsg").textContent = msg;
+  document.getElementById("toastUndo").onclick = function () {
+    hideToast(); undoFn();
+  };
+  document.getElementById("toastClose").onclick = hideToast;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 5000);
+}
+function hideToast() { toastEl.classList.remove("show"); }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const esc = (s) => s; // text always set via textContent, never innerHTML
+
+function render() {
+  const active = todos.filter(t => !t.archived);
+  const done   = active.filter(t => t.done);
+  const shown  = active.filter(t =>
+    filter === "all"    ? true  :
+    filter === "active" ? !t.done :
+                          t.done);
+
+  document.getElementById("activeCount").textContent = active.length
+    ? `· ${done.length}/${active.length}` : "";
+  document.getElementById("archiveCount").textContent = todos.filter(t => t.archived).length
+    ? `· ${todos.filter(t => t.archived).length}` : "";
+
+  renderList(document.getElementById("activeList"), shown, false);
+
+  const archived = todos.filter(t => t.archived);
+  renderList(document.getElementById("archiveList"), archived, true);
+}
+
+function renderList(container, list, isArchive) {
+  container.innerHTML = "";
+  if (!list.length) {
+    container.innerHTML = `<div class="empty">${
+      isArchive ? "Nothing archived yet." :
+      filter === "done" ? "Nothing done yet." :
+      filter === "active" ? "All caught up." :
+      "No tasks yet — add one above."}</div>`;
+    return;
+  }
+  list.forEach(t => container.appendChild(taskRow(t, isArchive)));
+}
+
+/* Build one task row */
+function taskRow(t, isArchive) {
+  const row = document.createElement("div");
+  row.className = "task" + (t.done ? " done" : "") + (t.noteOpen ? " note-open" : "");
+  row.draggable = !isArchive;
+  row.dataset.id = t.id;
+
+  /* Circle checkbox */
+  const check = document.createElement("button");
+  check.className = "checkbox";
+  check.title = t.done ? "Mark as not done" : "Mark as done";
+  check.innerHTML = t.done ? "✓" : "";
+  check.onclick = () => toggleDone(t.id);
+  row.appendChild(check);
+
+  /* Body: title + note */
+  const body = document.createElement("div");
+  body.className = "body";
+
+  const title = document.createElement("div");
+  title.className = "title";
+  title.textContent = esc(t.title);
+  title.title = "Double-click to edit";
+  title.ondblclick = () => startEditTitle(row, t);
+  body.appendChild(title);
+
+  /* Note preview (collapsed) / textarea (expanded) */
+  const noteOpen = !!t.noteOpen;
+  if (t.note || noteOpen) {
+    if (noteOpen) {
+      const ta = document.createElement("textarea");
+      ta.className = "note-editor";
+      ta.placeholder = "Add a note…";
+      ta.value = t.note || "";
+      ta.oninput = () => setNote(t.id, ta.value);
+      ta.onblur = () => { delete t.noteOpen; save(); render(); };
+      ta.onkeydown = (e) => { if (e.key === "Escape") { delete t.noteOpen; save(); render(); } };
+      body.appendChild(ta);
+    } else {
+      const prev = document.createElement("div");
+      prev.className = "note-preview";
+      prev.textContent = t.note;
+      prev.title = "Click to expand note";
+      prev.onclick = () => { t.noteOpen = true; save(); render(); };
+      body.appendChild(prev);
     }
+  }
+  /* Faint created/edited subscript timestamps */
+  let metaText = t.createdAt ? "Created " + timeAgo(t.createdAt) : "";
+  if (t.editedAt) metaText += (metaText ? " · " : "") + "Edited " + timeAgo(t.editedAt);
+  if (metaText) {
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = metaText;
+    // Hover tooltip shows the exact dates
+    meta.title = (t.createdAt ? new Date(t.createdAt).toLocaleString() : "") +
+      (t.editedAt ? "\nEdited: " + new Date(t.editedAt).toLocaleString() : "");
+    body.appendChild(meta);
+  }
 
-    /* Save todos whenever anything changes */
-    function save() {
-      localStorage.setItem("todos", JSON.stringify(todos));
-    }
+  row.appendChild(body);
 
-    /* ===== Adding a task ===== */
-    function addTodo() {
-      const input = document.getElementById("taskInput");
-      const text = input.value.trim(); // .trim() removes extra spaces
-      if (!text) return; // ignore empty input
+  /* Hover actions */
+  const actions = document.createElement("div");
+  actions.className = "actions";
 
-      todos.push({ id: nextId++, text: text, done: false, archived: false });
-      input.value = ""; // clear the box
-      input.focus();    // keep typing more tasks
-      render();
-    }
+  const mkAct = (cls, label, fn) => {
+    const b = document.createElement("button");
+    b.className = "act " + cls;
+    b.textContent = label;
+    b.title = label;
+    b.onclick = fn;
+    return b;
+  };
+  actions.appendChild(mkAct("note", "📝", () => { t.noteOpen = true; save(); render(); }));
+  actions.appendChild(mkAct("edit", "✏️", () => startEditTitle(row, t)));
+  if (!isArchive) actions.appendChild(mkAct("archive", "📦", () => archiveTodo(t.id)));
+  else            actions.appendChild(mkAct("restore", "↩", () => { t.archived = false; save(); render(); }));
+  actions.appendChild(mkAct("delete", "🗑", () => {
+    if (confirm(`Delete "${t.title}" permanently?`)) deleteTodo(t.id);
+  }));
+  row.appendChild(actions);
 
-    /* ===== Check off (mark done / not done) ===== */
-    function toggleDone(id) {
-      const todo = todos.find(function (t) { return t.id === id; });
-      if (todo) todo.done = !todo.done;
-      render();
-    }
+  return row;
+}
 
-    /* ===== Move up (-1) or down (+1) in the active list ===== */
-    function move(id, direction) {
-      const actives = todos.filter(function (t) { return !t.archived; });
-      const index = actives.findIndex(function (t) { return t.id === id; });
-      const newIndex = index + direction;
+/* Inline title editing (swap title div for an input) */
+function startEditTitle(row, t) {
+  const titleEl = row.querySelector(".title");
+  if (!titleEl || row.querySelector(".edit-input")) return;
 
-      // Don't move past the top or the bottom
-      if (index === -1 || newIndex < 0 || newIndex >= actives.length) return;
+  const input = document.createElement("input");
+  input.className = "edit-input";
+  input.value = t.title;
+  input.style.cssText =
+    "flex:1;font:inherit;font-size:15px;font-weight:500;border:1.5px solid var(--purple);" +
+    "border-radius:10px;padding:4px 8px;outline:none;width:100%;min-width:0;margin-top:2px;";
 
-      // Swap with the neighbour in the master `todos` array
-      const a = todos.indexOf(actives[index]);
-      const b = todos.indexOf(actives[newIndex]);
-      const tmp = todos[a];
-      todos[a] = todos[b];
-      todos[b] = tmp;
-      render();
-    }
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
 
-    /* ===== Archive / Restore (archive just hides it from Active) ===== */
-    function toggleArchive(id) {
-      const todo = todos.find(function (t) { return t.id === id; });
-      if (todo) todo.archived = !todo.archived;
-      render();
-    }
+  const commit = () => {
+    const v = input.value.trim();
+    if (v && v !== t.title) setTitle(t.id, v); else render();
+  };
+  input.onblur = commit;
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") input.blur();
+    if (e.key === "Escape") { input.onblur = null; render(); }
+  };
+}
 
-    /* ===== Delete permanently (only inside the archive) ===== */
-    function deleteTodo(id) {
-      todos = todos.filter(function (t) { return t.id !== id; });
-      render();
-    }
+/* ============================================================
+   COMPOSER + FILTERS + ARCHIVE TOGGLE
+   ============================================================ */
+const input = document.getElementById("taskInput");
+function addFromInput() { addTodo(input.value); input.value = ""; input.focus(); }
+document.getElementById("addBtn").onclick = addFromInput;
 
-    /* =====================================================
-       RENDERING = drawing the list on screen.
-       We rebuild the HTML from the `todos` data each time
-       something changes, so the screen always matches the data.
-       ===================================================== */
-    function render() {
-      save(); // keep storage in sync
+document.getElementById("filters").addEventListener("click", e => {
+  const btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  filter = btn.dataset.filter;
+  document.querySelectorAll(".filter-btn").forEach(b =>
+    b.classList.toggle("active", b === btn));
+  render();
+});
 
-      // Split into active and archived
-      const actives = todos.filter(function (t) { return !t.archived; });
-      const archived = todos.filter(function (t) { return t.archived; });
+const archiveToggle = document.getElementById("archiveToggle");
+const archiveWrap = document.getElementById("archiveWrap");
+archiveToggle.onclick = () => {
+  archiveOpen = !archiveOpen;
+  archiveToggle.classList.toggle("open", archiveOpen);
+  archiveWrap.classList.toggle("open", archiveOpen);
+};
 
-      const activeList = document.getElementById("activeList");
-      const archiveList = document.getElementById("archiveList");
+/* ============================================================
+   DRAG TO REORDER (active tasks only)
+   ============================================================ */
+let dragId = null;
 
-      /* Helper: create the text span for a todo */
-      function makeText(todo) {
-        const span = document.createElement("span");
-        span.className = "todo-text";
-        span.textContent = todo.text; // safe way to show user text
-        return span;
-      }
+document.getElementById("activeList").addEventListener("dragstart", e => {
+  const row = e.target.closest(".task");
+  if (!row) return;
+  dragId = Number(row.dataset.id);
+  row.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+  try { e.dataTransfer.setData("text/plain", String(dragId)); } catch (_) {}
+});
 
-      /* Helper: create one small button */
-      function makeBtn(className, symbol, title, onClick) {
-        const btn = document.createElement("button");
-        btn.className = "icon-btn " + className;
-        btn.textContent = symbol;
-        btn.title = title;
-        btn.onclick = onClick;
-        return btn;
-      }
+document.getElementById("activeList").addEventListener("dragend", e => {
+  dragId = null;
+  document.querySelectorAll(".task").forEach(r =>
+    r.classList.remove("dragging", "drop-target"));
+});
 
-      // ----- Build the ACTIVE list -----
-      activeList.innerHTML = "";
-      if (actives.length === 0) {
-        activeList.innerHTML = '<p class="empty-msg">No tasks yet — add one above!</p>';
-      } else {
-        actives.forEach(function (todo, i) {
-          const div = document.createElement("div");
-          div.className = "todo" + (todo.done ? " done" : "");
+document.getElementById("activeList").addEventListener("dragover", e => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  document.querySelectorAll(".task.drop-target").forEach(r => r.classList.remove("drop-target"));
+  const over = e.target.closest(".task");
+  if (over && Number(over.dataset.id) !== dragId) over.classList.add("drop-target");
+});
 
-          div.appendChild(makeText(todo));
+document.getElementById("activeList").addEventListener("drop", e => {
+  e.preventDefault();
+  const over = e.target.closest(".task");
+  if (!over || dragId == null) return;
+  const overId = Number(over.dataset.id);
+  if (overId === dragId) return;
 
-          // ✓ button: check off / uncheck
-          div.appendChild(makeBtn("check", todo.done ? "↩" : "✓",
-            todo.done ? "Mark as not done" : "Mark as done",
-            function () { toggleDone(todo.id); }));
+  /* Reorder within the non-archived slice */
+  const ids = todos.filter(t => !t.archived).map(t => t.id);
+  const from = ids.indexOf(dragId), to = ids.indexOf(overId);
+  if (from === -1 || to === -1) return;
+  const moved = todos.splice(todos.indexOf(byId(dragId)), 1)[0];
+  todos.splice(todos.indexOf(byId(to < from ? ids[to - 1] : ids[to])), 0, moved);
 
-          // ↑ arrow: move up (hidden on the first item)
-          if (i > 0) {
-            div.appendChild(makeBtn("up", "↑", "Move up",
-              function () { move(todo.id, -1); }));
-          }
+  dragId = null;
+  save(); render();
+});
 
-          // ↓ arrow: move down (hidden on the last item)
-          if (i < actives.length - 1) {
-            div.appendChild(makeBtn("down", "↓", "Move down",
-              function () { move(todo.id, 1); }));
-          }
-
-          // 📦 button: archive
-          div.appendChild(makeBtn("archive", "📦", "Archive",
-            function () { toggleArchive(todo.id); }));
-
-          activeList.appendChild(div);
-        });
-      }
-
-      // ----- Build the ARCHIVED list -----
-      archiveList.innerHTML = "";
-      if (archived.length === 0) {
-        archiveList.innerHTML = '<p class="empty-msg">Nothing archived yet. Archive a task with 📦.</p>';
-      } else {
-        archived.forEach(function (todo) {
-          const div = document.createElement("div");
-          div.className = "todo" + (todo.done ? " done" : "");
-
-          div.appendChild(makeText(todo));
-
-          // ↩ button: restore back to Active
-          div.appendChild(makeBtn("restore", "↩", "Restore to active list",
-            function () { toggleArchive(todo.id); }));
-
-          // 🗑 button: delete permanently (with confirmation)
-          div.appendChild(makeBtn("delete", "🗑", "Delete permanently",
-            function () {
-              if (confirm('Delete "' + todo.text + '" permanently?')) {
-                deleteTodo(todo.id);
-              }
-            }));
-
-          archiveList.appendChild(div);
-        });
-      }
-
-      // ----- Footer counter -----
-      const left = actives.filter(function (t) { return !t.done; }).length;
-      document.getElementById("footerCount").textContent =
-        left + " task" + (left === 1 ? "" : "s") + " left · " +
-        archived.length + " archived";
-    }
-
-    /* ===== Wire up the Add button and the Enter key ===== */
-    document.getElementById("addBtn").onclick = addTodo;
-    document.getElementById("taskInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") addTodo();
-    });
-
-    /* ===== Draw the list the first time ===== */
-    render();
-  </script>
+/* First paint */
+render();
+</script>
 </body>
 </html>
