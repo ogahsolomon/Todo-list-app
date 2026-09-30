@@ -14,12 +14,14 @@ A modern, minimal to-do app in a single HTML file. No frameworks, no build step.
 - **Filters** — All / Active / Done
 - **Archive** — collapsible section (closed by default); restore with ↩, delete permanently with 🗑
 - **Persistence** — everything is saved in your browser's localStorage
+- **Dark mode** — 🌙 button in the header; your choice is remembered, and first-time visitors get their system preference automatically
 
 ## Design
 
 - Inter font for text, **Fraunces** serif for the large display heading
-- Background `#f6f7fb`, 480px white card with 24px rounded corners
+- Light (`#f6f7fb`) and dark (`#12131a`) themes, 480px card with 24px rounded corners
 - Purple accent `#7c5cff`, soft shadows, subtle animations
+- All colors are CSS variables in `:root` / `:root[data-theme="dark"]` — easy to re-theme
 
 ## Try it
 

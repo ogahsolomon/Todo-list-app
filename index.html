@@ -16,11 +16,50 @@
 <style>
   :root {
     --bg: #f6f7fb;
+    --card: #ffffff;
+    --card-shadow: 0 1px 2px rgba(16,17,26,.04), 0 12px 40px rgba(16,17,26,.06);
     --purple: #7c5cff;
     --purple-soft: rgba(124, 92, 255, 0.12);
     --text: #1c1d22;
     --muted: #9aa0ab;
     --line: #ececf1;
+    --hover: #fafafc;
+    --btn-hover: #f0f0f5;
+    --check-border: #d4d7de;
+    --danger: #e5484d;
+    --danger-soft: #ffecec;
+    --toast-bg: #1c1d22;
+    --toast-text: #ffffff;
+    --toast-muted: #9aa0ab;
+    --toast-accent: #b3a1ff;
+    --toast-hover: rgba(255,255,255,.1);
+    --toast-shadow: 0 10px 30px rgba(0,0,0,.25);
+    color-scheme: light;
+  }
+
+  /* Dark palette — active when <html> has data-theme="dark".
+     The toggle button sets that attribute and remembers the choice. */
+  :root[data-theme="dark"] {
+    --bg: #12131a;
+    --card: #1a1c24;
+    --card-shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 40px rgba(0,0,0,.45);
+    --purple: #8f74ff;
+    --purple-soft: rgba(143, 116, 255, 0.18);
+    --text: #eceef2;
+    --muted: #8b90a0;
+    --line: #2a2d38;
+    --hover: #22242e;
+    --btn-hover: #262935;
+    --check-border: #4a4f5e;
+    --danger: #ff6b70;
+    --danger-soft: rgba(255, 107, 112, 0.14);
+    --toast-bg: #eceef2;
+    --toast-text: #1c1d22;
+    --toast-muted: #6b7180;
+    --toast-accent: #5b3df0;
+    --toast-hover: rgba(0,0,0,.08);
+    --toast-shadow: 0 10px 30px rgba(0,0,0,.5);
+    color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
@@ -36,17 +75,19 @@
     padding: 48px 16px;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
+    transition: background .2s, color .2s;
   }
 
   /* White card, 480px, big rounded corners */
   .app {
     width: 100%;
     max-width: 480px;
-    background: #fff;
+    background: var(--card);
     border-radius: 24px;
     padding: 28px;
-    box-shadow: 0 1px 2px rgba(16,17,26,.04), 0 12px 40px rgba(16,17,26,.06);
+    box-shadow: var(--card-shadow);
     height: fit-content;
+    transition: background .2s, box-shadow .2s;
   }
 
   h1 {
@@ -56,6 +97,24 @@
     letter-spacing: -0.01em;
     margin: 2px 0 18px;
   }
+
+  /* Header row: title + theme toggle on the right */
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #themeToggle {
+    width: 34px; height: 34px;
+    border: none; border-radius: 50%;
+    background: transparent;
+    font-size: 17px; line-height: 1;
+    cursor: pointer; flex-shrink: 0;
+    display: grid; place-items: center;
+    transition: background .15s, transform .12s;
+  }
+  #themeToggle:hover { background: var(--btn-hover); }
+  #themeToggle:active { transform: scale(.9); }
 
   /* ---------- Pill input with + button inside ---------- */
   .composer {
@@ -117,7 +176,7 @@
     cursor: pointer;
     transition: background .15s, color .15s;
   }
-  .filter-btn:hover { background: #f1f1f6; }
+  .filter-btn:hover { background: var(--btn-hover); }
   .filter-btn.active { background: var(--purple-soft); color: var(--purple); }
 
   /* ---------- Task row ---------- */
@@ -131,13 +190,13 @@
     position: relative;
     transition: background .15s;
   }
-  .task:hover { background: #fafafc; }
+  .task:hover { background: var(--hover); }
   .task.dragging { opacity: .35; cursor: grabbing; }
   .task.drop-target { box-shadow: 0 -2px 0 var(--purple); }
 
   .checkbox {
     width: 21px; height: 21px;
-    border: 1.8px solid #d4d7de;
+    border: 1.8px solid var(--check-border);
     border-radius: 50%;
     background: transparent;
     cursor: pointer; flex-shrink: 0;
@@ -204,7 +263,7 @@
     outline: none;
     resize: vertical;
     min-height: 56px;
-    background: #fff;
+    background: var(--card);
   }
   .task.note-open .note-preview { display: none; }
   .task.note-open .note-editor { display: block; }
@@ -232,9 +291,9 @@
     display: grid; place-items: center;
     transition: background .15s, color .15s;
   }
-  .act:hover { background: #f0f0f5; color: var(--text); }
+  .act:hover { background: var(--btn-hover); color: var(--text); }
   .act.archive:hover { background: var(--purple-soft); color: var(--purple); }
-  .act.delete:hover { background: #ffecec; color: #e5484d; }
+  .act.delete:hover { background: var(--danger-soft); color: var(--danger); }
 
   /* ---------- Archive section (collapsible) ---------- */
   #archiveToggle {
@@ -268,13 +327,13 @@
     position: fixed;
     left: 50%; bottom: 28px;
     transform: translateX(-50%) translateY(20px);
-    background: #1c1d22;
-    color: #fff;
+    background: var(--toast-bg);
+    color: var(--toast-text);
     font-size: 14px;
     padding: 11px 10px 11px 18px;
     border-radius: 14px;
     display: flex; align-items: center; gap: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    box-shadow: var(--toast-shadow);
     opacity: 0;
     pointer-events: none;
     transition: opacity .2s, transform .2s;
@@ -287,16 +346,16 @@
   }
   #toastUndo {
     border: none; background: transparent;
-    color: #b3a1ff; font: inherit; font-size: 14px; font-weight: 600;
+    color: var(--toast-accent); font: inherit; font-size: 14px; font-weight: 600;
     cursor: pointer; padding: 4px 6px; border-radius: 8px;
   }
-  #toastUndo:hover { background: rgba(255,255,255,.1); }
+  #toastUndo:hover { background: var(--toast-hover); }
   #toastClose {
     border: none; background: transparent;
-    color: #9aa0ab; font-size: 14px; cursor: pointer;
+    color: var(--toast-muted); font-size: 14px; cursor: pointer;
     padding: 4px 6px; border-radius: 8px;
   }
-  #toastClose:hover { background: rgba(255,255,255,.1); color: #fff; }
+  #toastClose:hover { background: var(--toast-hover); color: var(--toast-text); }
 
   /* Entrance animation for new task rows */
   @keyframes pop-in {
@@ -305,11 +364,26 @@
   }
   .task { animation: pop-in .18s ease-out; }
 </style>
+
+<!-- Apply the saved (or system) theme BEFORE first paint, so dark mode
+     loads instantly with no white flash -->
+<script>
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem("theme"); } catch (e) {}
+    var dark = saved ? saved === "dark"
+                     : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (dark) document.documentElement.setAttribute("data-theme", "dark");
+  })();
+</script>
 </head>
 <body>
 
 <main class="app">
-  <h1>My Todo List</h1>
+  <div class="header-row">
+    <h1>My Todo List</h1>
+    <button id="themeToggle" title="Switch theme">🌙</button>
+  </div>
 
   <!-- Pill composer: input + round purple + button inside -->
   <div class="composer">
@@ -632,6 +706,21 @@ function startEditTitle(row, t) {
 const input = document.getElementById("taskInput");
 function addFromInput() { addTodo(input.value); input.value = ""; input.focus(); }
 document.getElementById("addBtn").onclick = addFromInput;
+
+/* ===== Dark mode toggle (persists; first visit follows your system setting) ===== */
+const themeBtn = document.getElementById("themeToggle");
+function syncThemeBtn() {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  themeBtn.textContent = dark ? "☀️" : "🌙";
+  themeBtn.title = dark ? "Switch to light mode" : "Switch to dark mode";
+}
+themeBtn.onclick = () => {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
+  try { localStorage.setItem("theme", dark ? "light" : "dark"); } catch (e) {}
+  syncThemeBtn();
+};
+syncThemeBtn();
 
 document.getElementById("filters").addEventListener("click", e => {
   const btn = e.target.closest(".filter-btn");
